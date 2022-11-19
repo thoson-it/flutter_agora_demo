@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agora_demo/ui/pages/live/live_page.dart';
+import 'package:flutter_agora_demo/ui/pages/liver/liver_page.dart';
 import 'package:flutter_agora_demo/utils/user_type.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -42,6 +43,7 @@ class _MyAppState extends State<MyApp> {
               },
               child: const Text("Liver"),
             ),
+            const SizedBox(height: 8),
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -49,6 +51,14 @@ class _MyAppState extends State<MyApp> {
                         const LivePage(userType: UserType.viewer)));
               },
               child: const Text("Viewer"),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const LiverPage()));
+              },
+              child: const Text("Liver only"),
             ),
           ],
         ),

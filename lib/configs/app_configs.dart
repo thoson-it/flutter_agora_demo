@@ -5,7 +5,7 @@ class AppConfigs {
   static const channel = "thoson.it";
 
   static const liverToken =
-      "007eJxTYOh6N2XdLS3hdduvOTB/jbGvVTUS3aYm9f2he97Bwt1n7ucpMBhYmqYYJZsapSVZmpgkJRlaplgam6YaGJuZGaSZmBkkzXxrnyxp75gcNO0/CyMDBIL4nAwlGfnF+Xl6mSUMDAA0FCKw";
+      "007eJxTYLhuZ5w3YYqa93WFt8pagdqZ/zfvN5e5azPr9bfOpyoVX3gVGAwsTVOMkk2N0pIsTUySkgwtUyyNTVMNjM3MDNJMzAyS7DQqkhsCGRkWz5nHysgAgSA+J0NJRn5xfp5eZgkDAwDQryDf";
   static const viewerToken =
-      "007eJxTYLiz4LT7zE29O2W7CnSbNzVz82Yn/buklx++6wWjVtc6lUkKDAaWpilGyaZGaUmWJiZJSYaWKZbGpqkGxmZmBmkmZgZJ+9/aJ9vbOyYzSO9jYIRCEJ+ToSQjvzg/Ty+zhIEBAO0IIT4=";
+      "007eJxTYGjh7j+16Mhshu0y+gfN1Kxtu69vvfVN3bxBQ6BPL+fJR1kFBgNL0xSjZFOjtCRLE5OkJEPLFEtj01QDYzMzgzQTM4OkUI2K5IZARobau6osjAwQCOJzMpRk5Bfn5+llljAwAAByZx9q";
 }
