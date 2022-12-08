@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_agora_demo/ui/pages/live/live_page.dart';
 import 'package:flutter_agora_demo/ui/pages/liver/liver_page.dart';
+import 'package:flutter_agora_demo/ui/pages/preview/camera_preview_page.dart';
 import 'package:flutter_agora_demo/utils/user_type.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -59,6 +60,14 @@ class _MyAppState extends State<MyApp> {
                     MaterialPageRoute(builder: (context) => const LiverPage()));
               },
               child: const Text("Liver only"),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const CameraPreviewPage()));
+              },
+              child: const Text("Camera Preview"),
             ),
           ],
         ),

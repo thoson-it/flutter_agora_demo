@@ -40,6 +40,8 @@ dependencies:
   agora_rtc_engine: ^6.0.0
   permission_handler:
   processing_camera_image: ^0.0.9
+  opencv_4: ^1.0.0
+  image_picker: ^0.7.2+1
 
 dev_dependencies:
   flutter_test:
