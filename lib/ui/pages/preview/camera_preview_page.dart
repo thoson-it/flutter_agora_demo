@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_agora_demo/configs/app_configs.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -15,8 +17,6 @@ class CameraPreviewPage extends StatefulWidget {
 class _CameraPreviewPageState extends State<CameraPreviewPage> {
   late RtcEngine agoraEngine;
   bool _isReadyPreview = false;
-
-  final videoFrameController = StreamController<VideoFrame>.broadcast();
 
   AudioFrameObserver audioFrameObserver = AudioFrameObserver(
     onRecordAudioFrame: (String channelId, AudioFrame audioFrame) {
@@ -36,6 +36,20 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
     onCaptureVideoFrame: (VideoFrame videoFrame) {
       print(
           "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+      platform.invokeMethod(
+        'process_image',
+        {
+          'width': videoFrame.width,
+          'height': videoFrame.height,
+          'yBuffer': videoFrame.yBuffer,
+          'uBuffer': videoFrame.uBuffer,
+          'vBuffer': videoFrame.vBuffer,
+          'yStride': videoFrame.yStride,
+          'uStride': videoFrame.uStride,
+          'vStride': videoFrame.vStride,
+        },
+      );
+      // _processImage(videoFrame, videoImageController);
       // The video data that this callback gets has not been pre-processed
       // After pre-processing, you can send the processed video data back
       // to the SDK through this callback
@@ -50,10 +64,54 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
     },
   );
 
+  Uint8List? _imageByteData;
+  int? _imageWidth;
+  int? _imageHeight;
+
+  bool temp = true;
+
   @override
   void initState() {
     super.initState();
     initAgora();
+    eventChannel.receiveBroadcastStream().listen((event) async {
+      print("ReceiveBroadcastStream ================");
+      final map = Map<String, dynamic>.from(event);
+
+      // final image = Image.memory(
+      //   map["byteArray"],
+      //   width: 100,
+      //   height: 100,
+      //   fit: BoxFit.contain,
+      // );
+
+      ByteData data =
+          await rootBundle.load(!temp ? "assets/user.jpg" : "assets/img.png");
+      temp = !temp;
+      Uint8List bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+      final image = await decodeImageFromList(bytes);
+
+      final byteData =
+          await image.toByteData(format: ImageByteFormat.rawStraightRgba);
+      _imageByteData = byteData!.buffer.asUint8List();
+      _imageWidth = image.width;
+      _imageHeight = image.height;
+      image.dispose();
+      ExternalVideoFrame agoraFrame = ExternalVideoFrame(
+          type: VideoBufferType.videoBufferRawData,
+          format: VideoPixelFormat.videoPixelRgba,
+          // buffer: map["byteArray"],
+          // stride: map["width"],
+          // height: map["height"],
+          buffer: _imageByteData,
+          stride: _imageWidth,
+          height: _imageHeight,
+          timestamp: DateTime.now().millisecondsSinceEpoch);
+
+      agoraEngine.getMediaEngine().pushVideoFrame(frame: agoraFrame);
+    });
   }
 
   Future<void> initAgora() async {
@@ -101,11 +159,24 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
 
     agoraEngine.getMediaEngine().registerAudioFrameObserver(audioFrameObserver);
     agoraEngine.getMediaEngine().registerVideoFrameObserver(videoFrameObserver);
+    agoraEngine
+        .getMediaEngine()
+        .setExternalVideoSource(enabled: true, useTexture: false);
 
     await agoraEngine.startPreview();
     setState(() {
       _isReadyPreview = true;
     });
+    await Future.delayed(const Duration(seconds: 3));
+
+    await agoraEngine.joinChannel(
+      token: AppConfigs.liverToken,
+      channelId: AppConfigs.channel,
+      uid: 0,
+      options: const ChannelMediaOptions(
+        defaultVideoStreamType: VideoStreamType.videoStreamHigh,
+      ),
+    );
   }
 
   @override
@@ -125,9 +196,52 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
                     )
                   : const Center(child: CircularProgressIndicator()),
             ),
+            // SizedBox(
+            //   height: 300,
+            //   width: double.infinity,
+            //   child: StreamBuilder<Image>(
+            //     stream: videoImageController.stream,
+            //     builder: (context, snap) {
+            //       return snap.data ?? Container(color: Colors.red,);
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),
     );
   }
+}
+
+const platform = MethodChannel('it.thoson/image');
+const eventChannel = EventChannel('it.thoson/image_stream');
+
+final videoImageController = StreamController<Image>.broadcast();
+
+Future<Image?> _processImage(
+    VideoFrame videoFrame, StreamController<Image> controller) async {
+  // final dynamic result = await platform.invokeMethod(
+  //   'process_image',
+  //   {
+  //     'width': videoFrame.width,
+  //     'height': videoFrame.height,
+  //     'yBuffer': videoFrame.yBuffer,
+  //     'uBuffer': videoFrame.uBuffer,
+  //     'vBuffer': videoFrame.vBuffer,
+  //     'yStride': videoFrame.yStride,
+  //     'uStride': videoFrame.uStride,
+  //     'vStride': videoFrame.vStride,
+  //   },
+  // );
+  //
+  // print("ABCXYZ: $result");
+  // final map = Map<String, dynamic>.from(result);
+  // final image = Image.memory(
+  //   map["byteArray"],
+  //   width: 100,
+  //   height: 100,
+  //   fit: BoxFit.contain,
+  // );
+  // controller.sink.add(image);
+  return null;
 }

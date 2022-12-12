@@ -1,4 +1,6 @@
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_agora_demo/ui/pages/live/live_page.dart';
 import 'package:flutter_agora_demo/ui/pages/liver/liver_page.dart';
 import 'package:flutter_agora_demo/ui/pages/preview/camera_preview_page.dart';
@@ -15,6 +17,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  static const platform = MethodChannel('it.thoson/image');
+
   @override
   void initState() {
     super.initState();
@@ -64,10 +68,24 @@ class _MyAppState extends State<MyApp> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const CameraPreviewPage()));
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const CameraPreviewPage()));
               },
               child: const Text("Camera Preview"),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () async {
+                VideoFrame videoFrame = VideoFrame();
+                final dynamic result = await platform.invokeMethod(
+                  'process_image',
+                  {
+                    '':''
+                  },
+                );
+                print(result);
+              },
+              child: const Text("Process Image"),
             ),
           ],
         ),

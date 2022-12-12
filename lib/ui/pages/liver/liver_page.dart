@@ -4,8 +4,6 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_agora_demo/configs/app_configs.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:processing_camera_image/processing_camera_image.dart';
-import 'package:image/image.dart' as imglib;
 
 class LiverPage extends StatefulWidget {
   const LiverPage({Key? key}) : super(key: key);
@@ -20,8 +18,7 @@ class _LiverPageState extends State<LiverPage> {
 
   final videoFrameController = StreamController<VideoFrame>.broadcast();
 
-  final ProcessingCameraImage _processingCameraImage = ProcessingCameraImage();
-  imglib.Image? currentImage;
+  bool _isReadyPreview = false;
 
   AudioFrameObserver audioFrameObserver = AudioFrameObserver(
     onRecordAudioFrame: (String channelId, AudioFrame audioFrame) {
@@ -48,9 +45,6 @@ class _LiverPageState extends State<LiverPage> {
       final width = videoFrame.width;
       final height = videoFrame.height;
       final yBuffer = videoFrame.yBuffer;
-      if (width != null && height != null && yBuffer != null) {
-        imglib.Image.fromBytes(width, height, yBuffer);
-      }
     },
     onRenderVideoFrame:
         (String channelId, int remoteUid, VideoFrame videoFrame) {
@@ -94,12 +88,12 @@ class _LiverPageState extends State<LiverPage> {
       ),
     );
 
-
-
     await agoraEngine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
     await agoraEngine.enableVideo();
     await agoraEngine.startPreview();
-
+    setState(() {
+      _isReadyPreview = true;
+    });
     // Set the format of raw audio data.
     int SAMPLE_RATE = 16000, SAMPLE_NUM_OF_CHANNEL = 1, SAMPLES_PER_CALL = 1024;
 
@@ -122,15 +116,6 @@ class _LiverPageState extends State<LiverPage> {
     agoraEngine.getMediaEngine().registerVideoFrameObserver(videoFrameObserver);
 
     await Future.delayed(const Duration(seconds: 3));
-
-    await agoraEngine.joinChannel(
-      token: AppConfigs.liverToken,
-      channelId: AppConfigs.channel,
-      uid: 0,
-      options: const ChannelMediaOptions(
-        defaultVideoStreamType: VideoStreamType.videoStreamHigh,
-      ),
-    );
   }
 
   @override
@@ -150,29 +135,54 @@ class _LiverPageState extends State<LiverPage> {
                     )
                   : const CircularProgressIndicator(),
             ),
-            Container(
-              height: 200,
-              child: StreamBuilder<VideoFrame>(
-                stream: videoFrameController.stream,
-                initialData: null,
-                builder: (context, snapshot) {
-                  final data = snapshot.data;
-                  final image = _processingCameraImage.processCameraImageToGray(
-                    width: data?.width,
-                    height: data?.height,
-                    plane0: data?.uBuffer,
-                  );
-                  if (image != null) {
-                    currentImage = image;
-                  }
-                  return Container(
-                    color: Colors.red,
-                    width: double.infinity,
-                    height: double.infinity,
-                    child: Text(data?.toJson().toString() ?? ''),
-                  );
-                },
-              ),
+            Row(
+              children: [
+                TextButton(
+                    onPressed: () async {
+                      await agoraEngine.stopPreview();
+                      setState(() {
+                        _isReadyPreview = false;
+                      });
+                      await agoraEngine.joinChannel(
+                        token: AppConfigs.liverToken,
+                        channelId: AppConfigs.channel,
+                        uid: 0,
+                        options: const ChannelMediaOptions(
+                          defaultVideoStreamType:
+                              VideoStreamType.videoStreamHigh,
+                        ),
+                      );
+                    },
+                    child: Text('Join')),
+                TextButton(
+                    onPressed: () async {
+                      await agoraEngine.leaveChannel();
+                      setState(() {
+                        _localUserJoined = false;
+                      });
+                      await agoraEngine.startPreview();
+                      setState(() {
+                        _isReadyPreview = true;
+                      });
+                    },
+                    child: Text('Leave')),
+              ],
+            ),
+            SizedBox(
+              height: 300,
+              width: double.infinity,
+              child: _isReadyPreview
+                  ? AgoraVideoView(
+                      controller: VideoViewController(
+                        rtcEngine: agoraEngine,
+                        canvas: const VideoCanvas(uid: 0),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.green,
+                      height: 300,
+                      width: double.infinity,
+                    ),
             ),
           ],
         ),
