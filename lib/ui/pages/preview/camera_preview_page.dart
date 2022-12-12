@@ -72,43 +72,17 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
   void initState() {
     super.initState();
     initAgora();
-    eventChannel.receiveBroadcastStream().listen((event) async {
+    eventChannel.receiveBroadcastStream().listen((event) {
       print("ReceiveBroadcastStream ================");
-      // final map = Map<String, dynamic>.from(event);
-
-      // final image = Image.memory(
-      //   map["byteArray"],
-      //   width: 100,
-      //   height: 100,
-      //   fit: BoxFit.contain,
-      // );
-
-      // ByteData data =
-      //     await rootBundle.load(!temp ? "assets/user.jpg" : "assets/img.png");
-      // temp = !temp;
-      // Uint8List bytes =
-      //     data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      //
-      // final image = await decodeImageFromList(bytes);
-      //
-      // final byteData =
-      //     await image.toByteData(format: ImageByteFormat.rawStraightRgba);
-      // _imageByteData = byteData!.buffer.asUint8List();
-      // _imageWidth = image.width;
-      // _imageHeight = image.height;
-      // image.dispose();
-      // ExternalVideoFrame agoraFrame = ExternalVideoFrame(
-      //     type: VideoBufferType.videoBufferRawData,
-      //     format: VideoPixelFormat.videoPixelRgba,
-      //     // buffer: map["byteArray"],
-      //     // stride: map["width"],
-      //     // height: map["height"],
-      //     buffer: _imageByteData,
-      //     stride: _imageWidth,
-      //     height: _imageHeight,
-      //     timestamp: DateTime.now().millisecondsSinceEpoch);
-      //
-      // agoraEngine.getMediaEngine().pushVideoFrame(frame: agoraFrame);
+      final map = Map<String, dynamic>.from(event);
+      ExternalVideoFrame agoraFrame = ExternalVideoFrame(
+          type: VideoBufferType.videoBufferRawData,
+          format: VideoPixelFormat.videoPixelRgba,
+          buffer: map["byteArray"],
+          stride: map["width"],
+          height: map["height"],
+          timestamp: DateTime.now().millisecondsSinceEpoch);
+      agoraEngine.getMediaEngine().pushVideoFrame(frame: agoraFrame);
     });
   }
 

@@ -11,7 +11,6 @@ import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.github.crow_misia.libyuv.I420Buffer
-import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 class MainActivity : FlutterActivity() {
@@ -91,13 +90,14 @@ class MainActivity : FlutterActivity() {
             width,
             height
         )
-        val matrix = Matrix()
-        matrix.setRotate(270f)
-        // 围绕原地进行旋转
-        // 围绕原地进行旋转
-        newBitmap = Bitmap.createBitmap(bitmap!!, 0, 0, width, height, matrix, false)
+//        val matrix = Matrix()
+//        matrix.setRotate(270f)
+//        // 围绕原地进行旋转
+//        // 围绕原地进行旋转
+//        newBitmap = Bitmap.createBitmap(bitmap!!, 0, 0, width, height, matrix, false)
 //        val mat = Mat()
 //        Utils.bitmapToMat(newBitmap, mat)
+        newBitmap = bitmap
         //Todo
         newI420 = YUVUtils.bitmapToI420(newBitmap!!)
         i420Map["width"] = newI420!!.width
@@ -105,6 +105,7 @@ class MainActivity : FlutterActivity() {
         i420Map["yBuffer"] = ByteArray(newI420!!.bufferY.capacity())
         i420Map["uBuffer"] = ByteArray(newI420!!.bufferU.capacity())
         i420Map["vBuffer"] = ByteArray(newI420!!.bufferV.capacity())
+        i420Map["byteArray"] = bitmapToRgba(newBitmap!!)
 
 //        val stream = ByteArrayOutputStream()
 //        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
@@ -121,4 +122,24 @@ class MainActivity : FlutterActivity() {
         bitmap = null
         newBitmap = null
     }
+}
+
+fun bitmapToRgba(bitmap: Bitmap): ByteArray {
+    require(bitmap.config == Bitmap.Config.ARGB_8888) { "Bitmap must be in ARGB_8888 format" }
+    val pixels = IntArray(bitmap.width * bitmap.height)
+    val bytes = ByteArray(pixels.size * 4)
+    bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+    var i = 0
+    for (pixel in pixels) {
+        // Get components assuming is ARGB
+        val A = pixel shr 24 and 0xff
+        val R = pixel shr 16 and 0xff
+        val G = pixel shr 8 and 0xff
+        val B = pixel and 0xff
+        bytes[i++] = R.toByte()
+        bytes[i++] = G.toByte()
+        bytes[i++] = B.toByte()
+        bytes[i++] = A.toByte()
+    }
+    return bytes
 }
