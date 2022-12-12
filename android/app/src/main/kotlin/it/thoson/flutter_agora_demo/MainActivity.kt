@@ -2,6 +2,7 @@ package it.thoson.flutter_agora_demo
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -11,6 +12,11 @@ import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.github.crow_misia.libyuv.I420Buffer
+import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
+import vn.nws.liveeffects.EffectWrapper
 import java.nio.ByteBuffer
 
 class MainActivity : FlutterActivity() {
@@ -21,9 +27,16 @@ class MainActivity : FlutterActivity() {
 
     private var attachEvent: EventSink? = null
 
+    private var mWrapper = EffectWrapper(this)
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        OpenCVLoader.initDebug()
+        mWrapper.SetBeauty(
+            mWrapper.mWrapper,
+            2,
+            1
+        )
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
@@ -48,15 +61,6 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-
-    //    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        if (OpenCVLoader.initDebug()) {
-//            Log.d("Check", "OpenCv configured successfully")
-//        } else {
-//            Log.d("Check", "OpenCv doesn’t configured successfully")
-//        }
-//    }
     var newI420: I420Buffer? = null
     var newBitmap: Bitmap? = null
     var bitmap: Bitmap? = null
@@ -94,10 +98,14 @@ class MainActivity : FlutterActivity() {
 //        matrix.setRotate(270f)
 //        // 围绕原地进行旋转
 //        // 围绕原地进行旋转
-//        newBitmap = Bitmap.createBitmap(bitmap!!, 0, 0, width, height, matrix, false)
-//        val mat = Mat()
-//        Utils.bitmapToMat(newBitmap, mat)
-        newBitmap = bitmap
+        val mat = Mat()
+//        val newMat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+        mWrapper.Apply(mWrapper.mWrapper, mat.nativeObjAddr)
+//        Imgproc.cvtColor(mat, newMat, Imgproc.COLOR_RGB2GRAY);
+        newBitmap = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mat, newBitmap)
+//        newBitmap = bitmap
         //Todo
         newI420 = YUVUtils.bitmapToI420(newBitmap!!)
         i420Map["width"] = newI420!!.width
