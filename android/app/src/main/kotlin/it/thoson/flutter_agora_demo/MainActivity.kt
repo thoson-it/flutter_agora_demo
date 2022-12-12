@@ -10,6 +10,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.github.crow_misia.libyuv.I420Buffer
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
@@ -57,9 +58,16 @@ class MainActivity : FlutterActivity() {
 //            Log.d("Check", "OpenCv doesn’t configured successfully")
 //        }
 //    }
+    var newI420: I420Buffer? = null
+    var newBitmap: Bitmap? = null
+    var bitmap: Bitmap? = null
+    private val i420Map = mutableMapOf<String, Any>()
+
     private fun processImage(call: MethodCall, result: MethodChannel.Result) {
         if (call.arguments !is Map<*, *>) {
             Log.d(TAG, "Invalid data")
+            result.error("", "", "")
+            return
         }
         val arguments = call.arguments as Map<*, *>
         val width: Int = arguments["width"] as Int
@@ -77,7 +85,7 @@ class MainActivity : FlutterActivity() {
             width,
             height
         )
-        val bitmap: Bitmap = YUVUtils.NV21ToBitmap(
+        bitmap = YUVUtils.NV21ToBitmap(
             baseContext,
             YUVUtils.I420ToNV21(i420, width, height),
             width,
@@ -87,25 +95,30 @@ class MainActivity : FlutterActivity() {
         matrix.setRotate(270f)
         // 围绕原地进行旋转
         // 围绕原地进行旋转
-        val newBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false)
+        newBitmap = Bitmap.createBitmap(bitmap!!, 0, 0, width, height, matrix, false)
 //        val mat = Mat()
 //        Utils.bitmapToMat(newBitmap, mat)
         //Todo
-        val newI420 = YUVUtils.bitmapToI420(newBitmap)
-        val i420Map = mutableMapOf<String, Any>()
-        i420Map["width"] = newI420.width
-        i420Map["height"] = newI420.height
-        i420Map["yBuffer"] = ByteArray(newI420.bufferY.capacity())
-        i420Map["uBuffer"] = ByteArray(newI420.bufferU.capacity())
-        i420Map["vBuffer"] = ByteArray(newI420.bufferV.capacity())
+        newI420 = YUVUtils.bitmapToI420(newBitmap!!)
+        i420Map["width"] = newI420!!.width
+        i420Map["height"] = newI420!!.height
+        i420Map["yBuffer"] = ByteArray(newI420!!.bufferY.capacity())
+        i420Map["uBuffer"] = ByteArray(newI420!!.bufferU.capacity())
+        i420Map["vBuffer"] = ByteArray(newI420!!.bufferV.capacity())
 
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        val byteArray: ByteArray = stream.toByteArray()
-        i420Map["byteArray"] = byteArray
-        Log.d(TAG, "Data = $i420Map")
-        result.success(i420Map)
+//        val stream = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+//        val byteArray: ByteArray = stream.toByteArray()
+//        i420Map["byteArray"] = byteArray
+        result.success(null)
         attachEvent?.success(i420Map)
-//        bitmap.recycle()
+
+        newI420?.release()
+        bitmap?.recycle()
+        newBitmap?.recycle()
+
+        newI420 = null
+        bitmap = null
+        newBitmap = null
     }
 }

@@ -28,14 +28,12 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
       // print(
       //     "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
       // Gets the audio frame for playback
-      debugPrint('[onPlaybackAudioFrame] audioFrame: ${audioFrame.toJson()}');
+      // debugPrint('[onPlaybackAudioFrame] audioFrame: ${audioFrame.toJson()}');
     },
   );
 
   VideoFrameObserver videoFrameObserver = VideoFrameObserver(
     onCaptureVideoFrame: (VideoFrame videoFrame) {
-      print(
-          "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
       platform.invokeMethod(
         'process_image',
         {
@@ -76,7 +74,7 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
     initAgora();
     eventChannel.receiveBroadcastStream().listen((event) async {
       print("ReceiveBroadcastStream ================");
-      final map = Map<String, dynamic>.from(event);
+      // final map = Map<String, dynamic>.from(event);
 
       // final image = Image.memory(
       //   map["byteArray"],
@@ -85,32 +83,32 @@ class _CameraPreviewPageState extends State<CameraPreviewPage> {
       //   fit: BoxFit.contain,
       // );
 
-      ByteData data =
-          await rootBundle.load(!temp ? "assets/user.jpg" : "assets/img.png");
-      temp = !temp;
-      Uint8List bytes =
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-
-      final image = await decodeImageFromList(bytes);
-
-      final byteData =
-          await image.toByteData(format: ImageByteFormat.rawStraightRgba);
-      _imageByteData = byteData!.buffer.asUint8List();
-      _imageWidth = image.width;
-      _imageHeight = image.height;
-      image.dispose();
-      ExternalVideoFrame agoraFrame = ExternalVideoFrame(
-          type: VideoBufferType.videoBufferRawData,
-          format: VideoPixelFormat.videoPixelRgba,
-          // buffer: map["byteArray"],
-          // stride: map["width"],
-          // height: map["height"],
-          buffer: _imageByteData,
-          stride: _imageWidth,
-          height: _imageHeight,
-          timestamp: DateTime.now().millisecondsSinceEpoch);
-
-      agoraEngine.getMediaEngine().pushVideoFrame(frame: agoraFrame);
+      // ByteData data =
+      //     await rootBundle.load(!temp ? "assets/user.jpg" : "assets/img.png");
+      // temp = !temp;
+      // Uint8List bytes =
+      //     data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      //
+      // final image = await decodeImageFromList(bytes);
+      //
+      // final byteData =
+      //     await image.toByteData(format: ImageByteFormat.rawStraightRgba);
+      // _imageByteData = byteData!.buffer.asUint8List();
+      // _imageWidth = image.width;
+      // _imageHeight = image.height;
+      // image.dispose();
+      // ExternalVideoFrame agoraFrame = ExternalVideoFrame(
+      //     type: VideoBufferType.videoBufferRawData,
+      //     format: VideoPixelFormat.videoPixelRgba,
+      //     // buffer: map["byteArray"],
+      //     // stride: map["width"],
+      //     // height: map["height"],
+      //     buffer: _imageByteData,
+      //     stride: _imageWidth,
+      //     height: _imageHeight,
+      //     timestamp: DateTime.now().millisecondsSinceEpoch);
+      //
+      // agoraEngine.getMediaEngine().pushVideoFrame(frame: agoraFrame);
     });
   }
 
@@ -220,19 +218,19 @@ final videoImageController = StreamController<Image>.broadcast();
 
 Future<Image?> _processImage(
     VideoFrame videoFrame, StreamController<Image> controller) async {
-  // final dynamic result = await platform.invokeMethod(
-  //   'process_image',
-  //   {
-  //     'width': videoFrame.width,
-  //     'height': videoFrame.height,
-  //     'yBuffer': videoFrame.yBuffer,
-  //     'uBuffer': videoFrame.uBuffer,
-  //     'vBuffer': videoFrame.vBuffer,
-  //     'yStride': videoFrame.yStride,
-  //     'uStride': videoFrame.uStride,
-  //     'vStride': videoFrame.vStride,
-  //   },
-  // );
+  platform.invokeMethod(
+    'process_image',
+    {
+      'width': videoFrame.width,
+      'height': videoFrame.height,
+      'yBuffer': videoFrame.yBuffer,
+      'uBuffer': videoFrame.uBuffer,
+      'vBuffer': videoFrame.vBuffer,
+      'yStride': videoFrame.yStride,
+      'uStride': videoFrame.uStride,
+      'vStride': videoFrame.vStride,
+    },
+  );
   //
   // print("ABCXYZ: $result");
   // final map = Map<String, dynamic>.from(result);
