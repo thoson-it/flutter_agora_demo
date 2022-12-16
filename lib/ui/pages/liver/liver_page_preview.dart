@@ -45,10 +45,16 @@ class _LiverPreviewPageState extends State<LiverPreviewPage> {
           children: [
             Expanded(
               child: AgoraManager.getInstance.isReadyPreview
-                  ? AgoraVideoView(
-                      controller: VideoViewController(
-                        rtcEngine: AgoraManager.getInstance.agoraEngine,
-                        canvas: const VideoCanvas(uid: 0),
+                  ? Center(
+                      child: SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: AgoraManager.getInstance.agoraEngine,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
+                        ),
                       ),
                     )
                   : Container(
